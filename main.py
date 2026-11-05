@@ -1,6 +1,9 @@
 import json
 from pathlib import Path
 
+def funcion_prueba():
+    pass
+
 def crear_estructura_proyecto():
     # Directorio raíz del proyecto
     base_dir = Path("sistema-supermercado")
