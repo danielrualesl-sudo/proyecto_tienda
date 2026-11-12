@@ -8,6 +8,7 @@ los archivos originales quedan intactos.
 import copy
 import json
 import os
+import re
 from pathlib import Path
 
 DIR_DATOS = Path(__file__).resolve().parent.parent / "datos"
@@ -57,6 +58,69 @@ def cargar_json(ruta):
         raise ErrorPersistencia(f"No se pudo leer '{Path(ruta).name}': {error}") from error
 
 
+def _normalizar_ventas(ventas):
+    """Adapta facturas del formato anterior al esquema que usa el negocio."""
+    for indice, factura in enumerate(ventas, start=1):
+        if not isinstance(factura, dict):
+            raise ErrorPersistencia(f"La factura #{indice} no contiene un objeto válido.")
+
+        if "numero" not in factura:
+            numero_anterior = str(factura.get("numero_factura", "")).strip()
+            coincidencia = re.fullmatch(r"(?:[A-Za-z]+-)?(\d+)", numero_anterior)
+            if coincidencia is None:
+                raise ErrorPersistencia(
+                    f"La factura #{indice} no tiene un número de factura válido."
+                )
+            factura["numero"] = int(coincidencia.group(1))
+        elif isinstance(factura["numero"], str):
+            try:
+                factura["numero"] = int(factura["numero"])
+            except ValueError as error:
+                raise ErrorPersistencia(
+                    f"La factura #{indice} no tiene un número de factura válido."
+                ) from error
+
+        detalle = factura.get("detalle", [])
+        if not isinstance(detalle, list):
+            raise ErrorPersistencia(f"El detalle de la factura #{indice} no es una lista.")
+        for linea in detalle:
+            if not isinstance(linea, dict):
+                raise ErrorPersistencia(f"Una línea de la factura #{indice} no es válida.")
+            linea.setdefault("devuelto", 0)
+
+        subtotal = factura.get("subtotal")
+        if subtotal is None:
+            try:
+                subtotal = sum(float(linea.get("subtotal", 0)) for linea in detalle)
+            except (TypeError, ValueError) as error:
+                raise ErrorPersistencia(
+                    f"El subtotal de la factura #{indice} no es válido."
+                ) from error
+            factura["subtotal"] = subtotal
+
+        descuento = factura.get("descuento", 0) or 0
+        if "descuento_pct" not in factura:
+            try:
+                descuento = float(descuento)
+            except (TypeError, ValueError) as error:
+                raise ErrorPersistencia(
+                    f"El descuento de la factura #{indice} no es válido."
+                ) from error
+            factura["descuento_pct"] = round(descuento / subtotal * 100, 2) if subtotal else 0
+
+        if "impuesto_pct" not in factura:
+            try:
+                impuestos = float(factura.get("impuestos", 0) or 0)
+                base = float(subtotal) - float(descuento)
+            except (TypeError, ValueError) as error:
+                raise ErrorPersistencia(
+                    f"Los impuestos de la factura #{indice} no son válidos."
+                ) from error
+            factura["impuesto_pct"] = round(impuestos / base * 100, 2) if base else 0
+
+        factura.setdefault("devoluciones", [])
+
+
 def cargar_estado():
     """Carga los tres archivos. Devuelve (estado, avisos).
 
@@ -75,6 +139,8 @@ def cargar_estado():
             datos = cargar_json(ruta)
             if not isinstance(datos, list):
                 raise ErrorPersistencia(f"El archivo '{ruta.name}' no contiene una lista.")
+            if clave == "ventas":
+                _normalizar_ventas(datos)
         except ErrorPersistencia as error:
             copia = ruta.with_name(ruta.name + ".corrupto")
             try:

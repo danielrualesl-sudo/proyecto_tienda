@@ -5,6 +5,7 @@ Usa una carpeta temporal: NO toca los archivos de la carpeta datos/.
 Cada caso imprime: entrada, resultado esperado, resultado obtenido y OK/FALLO.
 """
 import copy
+import json
 import tempfile
 from pathlib import Path
 
@@ -45,6 +46,24 @@ def main():
             nonlocal n
             n += 1
             caso(n, nombre, esperado, accion)
+
+        factura_anterior = [{
+            "numero_factura": "FAC-0001",
+            "fecha": "2026-11-08 10:30:00",
+            "detalle": [{
+                "codigo": "P001", "nombre": "Arroz", "cantidad": 2,
+                "precio_unitario": 4000, "subtotal": 8000,
+            }],
+            "descuento": 0, "impuestos": 0, "total": 8000, "estado": "completada",
+        }]
+        (Path(tmp) / "ventas.json").write_text(
+            json.dumps(factura_anterior), encoding="utf-8")
+        estado_anterior, _ = gestor_json.cargar_estado()
+        c("Migrar factura anterior", "numero=1 devuelto=0 devoluciones=0",
+          lambda: f"numero={estado_anterior['ventas'][0]['numero']} "
+                  f"devuelto={estado_anterior['ventas'][0]['detalle'][0]['devuelto']} "
+                  f"devoluciones={len(estado_anterior['ventas'][0]['devoluciones'])}")
+        gestor_json.guardar_estado(estado)
 
         c("Registrar producto válido", "stock=10",
           lambda: f"stock={inventario.crear_producto(estado, producto())['stock']}")
