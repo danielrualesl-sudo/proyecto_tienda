@@ -9,5 +9,23 @@
     "valor_esperado": 78900000.0,
     "valor_declarado": 453566.0,
     "diferencia": -78446434.0
+  },
+  {
+    "id": 2,
+    "estado": "cerrada",
+    "apertura": "2026-11-11 23:54:51",
+    "saldo_inicial": 250000.0,
+    "movimientos": [
+      {
+        "fecha": "2026-11-12 09:34:08",
+        "tipo": "ingreso",
+        "monto": 100.0,
+        "descripcion": "arroz"
+      }
+    ],
+    "cierre": "2026-11-12 09:34:25",
+    "valor_esperado": 250100.0,
+    "valor_declarado": 100.0,
+    "diferencia": -250000.0
   }
 ]
