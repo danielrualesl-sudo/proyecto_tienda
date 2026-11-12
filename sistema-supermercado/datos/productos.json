@@ -1,1 +1,112 @@
-[]
+[
+  {
+    "codigo": "P001",
+    "nombre": "Arroz 1 kg",
+    "categoria": "Granos",
+    "precio_compra": 3200.0,
+    "precio_venta": 4200.0,
+    "stock": 40,
+    "stock_minimo": 10,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P002",
+    "nombre": "Aceite de girasol 1 L",
+    "categoria": "Despensa",
+    "precio_compra": 9500.0,
+    "precio_venta": 12500.0,
+    "stock": 25,
+    "stock_minimo": 8,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P003",
+    "nombre": "Leche entera 1 L",
+    "categoria": "Lácteos",
+    "precio_compra": 3400.0,
+    "precio_venta": 4300.0,
+    "stock": 30,
+    "stock_minimo": 12,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P004",
+    "nombre": "Huevos x30",
+    "categoria": "Lácteos",
+    "precio_compra": 14000.0,
+    "precio_venta": 17500.0,
+    "stock": 15,
+    "stock_minimo": 5,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P005",
+    "nombre": "Pan tajado",
+    "categoria": "Panadería",
+    "precio_compra": 4200.0,
+    "precio_venta": 5600.0,
+    "stock": 20,
+    "stock_minimo": 6,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P006",
+    "nombre": "Gaseosa 1.5 L",
+    "categoria": "Bebidas",
+    "precio_compra": 4000.0,
+    "precio_venta": 5500.0,
+    "stock": 35,
+    "stock_minimo": 10,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P007",
+    "nombre": "Jabón de manos",
+    "categoria": "Aseo",
+    "precio_compra": 2800.0,
+    "precio_venta": 3900.0,
+    "stock": 18,
+    "stock_minimo": 6,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P008",
+    "nombre": "Papel higiénico x4",
+    "categoria": "Aseo",
+    "precio_compra": 7000.0,
+    "precio_venta": 9800.0,
+    "stock": 22,
+    "stock_minimo": 8,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P009",
+    "nombre": "Café molido 250 g",
+    "categoria": "Despensa",
+    "precio_compra": 8500.0,
+    "precio_venta": 11500.0,
+    "stock": 12,
+    "stock_minimo": 5,
+    "activo": true,
+    "movimientos": []
+  },
+  {
+    "codigo": "P010",
+    "nombre": "Azúcar 1 kg",
+    "categoria": "Granos",
+    "precio_compra": 3000.0,
+    "precio_venta": 3900.0,
+    "stock": 4,
+    "stock_minimo": 8,
+    "activo": true,
+    "movimientos": []
+  }
+]
