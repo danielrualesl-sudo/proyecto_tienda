@@ -82,6 +82,8 @@ def procesar_venta(estado, carrito, descuento_pct, pago):
     """
     if not carrito:
         raise v.ErrorValidacion("El carrito está vacío.")
+    if caja.sesion_abierta(estado) is None:
+        raise v.ErrorValidacion("No hay una caja abierta. Abra la caja en la pestaña Caja antes de cobrar.")
     pago = v.decimal(pago, "Pago recibido", minimo=0)
     items = dict(carrito)
 

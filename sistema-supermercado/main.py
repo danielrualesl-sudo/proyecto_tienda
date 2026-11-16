@@ -25,8 +25,11 @@ class Aplicacion(tk.Tk):
     def __init__(self, estado):
         super().__init__()
         self.title("Sistema de gestión de supermercado")
-        self.geometry("1150x700")
-        self.minsize(980, 620)
+        # Tamaño ajustado a la pantalla (evita que se corten botones en portátiles con zoom)
+        ancho = min(1150, self.winfo_screenwidth() - 40)
+        alto = min(700, self.winfo_screenheight() - 100)
+        self.geometry(f"{ancho}x{alto}+10+10")
+        self.minsize(760, 480)
         self.estado = estado
         self.cuaderno = ttk.Notebook(self)
         self.cuaderno.pack(fill="both", expand=True, padx=6, pady=6)

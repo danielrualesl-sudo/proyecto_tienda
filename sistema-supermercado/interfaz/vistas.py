@@ -210,55 +210,64 @@ class VistaVentas(ttk.Frame):
         cuerpo = ttk.Frame(self)
         cuerpo.pack(fill="both", expand=True, pady=6)
 
-        izq = ttk.LabelFrame(cuerpo, text="Catálogo", padding=6)
+        # ---------- Izquierda: catálogo y botón «Agregar al carrito»
+        # Los controles de abajo se empaquetan PRIMERO (side="bottom") para que
+        # nunca queden ocultos si la ventana es pequeña o la pantalla tiene zoom.
+        izq = ttk.LabelFrame(cuerpo, text="1. Elija el producto", padding=6)
         izq.pack(side="left", fill="both", expand=True, padx=(0, 6))
         self.var_busqueda = tk.StringVar()
-        ttk.Entry(izq, textvariable=self.var_busqueda).pack(fill="x")
+        ttk.Entry(izq, textvariable=self.var_busqueda).pack(side="top", fill="x")
+        fila = ttk.Frame(izq)
+        fila.pack(side="bottom", fill="x", pady=(4, 0))
+        self.var_codigo, entrada_codigo = ui.crear_campo(fila, "Código", 0, 0, ancho=10)
+        self.var_cantidad, entrada_cantidad = ui.crear_campo(fila, "Cantidad", 0, 2, ancho=6, valor="1")
+        ttk.Button(fila, text="Agregar al carrito", command=self.agregar).grid(row=0, column=4, padx=4)
+        entrada_codigo.bind("<Return>", lambda _e: self.agregar())
+        entrada_cantidad.bind("<Return>", lambda _e: self.agregar())
         marco, self.tabla_cat = ui.crear_tabla(izq, [
             ("codigo", "Código", 70), ("nombre", "Nombre", 170),
-            ("precio", "Precio", 90), ("stock", "Stock", 55)], alto=14)
-        marco.pack(fill="both", expand=True, pady=4)
+            ("precio", "Precio", 90), ("stock", "Stock", 55)], alto=6)
+        marco.pack(side="top", fill="both", expand=True, pady=4)
         self.tabla_cat.bind("<<TreeviewSelect>>", self._elegir_producto)
-        fila = ttk.Frame(izq)
-        fila.pack(fill="x")
-        self.var_codigo, _ = ui.crear_campo(fila, "Código", 0, 0, ancho=10)
-        self.var_cantidad, _ = ui.crear_campo(fila, "Cantidad", 0, 2, ancho=6, valor="1")
-        ttk.Button(fila, text="Agregar al carrito", command=self.agregar).grid(row=0, column=4, padx=4)
+        self.tabla_cat.bind("<Double-1>", lambda _e: self.agregar())   # doble clic = agregar
 
-        der = ttk.LabelFrame(cuerpo, text="Carrito y cobro", padding=6)
+        # ---------- Derecha: carrito, totales y botón «COBRAR»
+        der = ttk.LabelFrame(cuerpo, text="2. Carrito y cobro", padding=6)
         der.pack(side="left", fill="both", expand=True)
-        marco, self.tabla_car = ui.crear_tabla(der, [
-            ("codigo", "Código", 70), ("nombre", "Nombre", 150), ("cantidad", "Cant.", 50),
-            ("precio", "Precio", 85), ("subtotal", "Subtotal", 95)], alto=8)
-        marco.pack(fill="both", expand=True)
-        botones = ttk.Frame(der)
-        botones.pack(fill="x", pady=4)
-        ttk.Button(botones, text="Quitar", command=self.quitar).pack(side="left", padx=2)
-        ttk.Button(botones, text="Cambiar cantidad (usa el campo Cantidad)",
-                   command=self.cambiar_cantidad).pack(side="left", padx=2)
-        ttk.Button(botones, text="Vaciar", command=self.vaciar).pack(side="left", padx=2)
+        self.var_subtotal, self.var_desc_val = tk.StringVar(), tk.StringVar()
+        self.var_impuestos, self.var_total, self.var_cambio = tk.StringVar(), tk.StringVar(), tk.StringVar()
+        self.var_aviso = tk.StringVar()
 
+        ttk.Button(der, text="COBRAR (registrar la venta)", command=self.cobrar).pack(
+            side="bottom", fill="x", pady=4, ipady=6)
+        totales = ttk.Frame(der)
+        totales.pack(side="bottom", fill="x", pady=4)
+        etiquetas = [
+            ("Subtotal:", self.var_subtotal, 0, 0), ("Descuento:", self.var_desc_val, 0, 2),
+            (f"IVA ({ventas.IMPUESTO_PORCENTAJE:g}%):", self.var_impuestos, 0, 4),
+            ("TOTAL:", self.var_total, 1, 0), ("Cambio:", self.var_cambio, 1, 2)]
+        for texto, var, fila_, col in etiquetas:
+            fuente = ("Segoe UI", 11, "bold") if texto == "TOTAL:" else ("Segoe UI", 9)
+            ttk.Label(totales, text=texto, font=fuente).grid(row=fila_, column=col, sticky="e", padx=(6, 2))
+            ttk.Label(totales, textvariable=var, font=fuente).grid(row=fila_, column=col + 1, sticky="w", padx=(0, 8))
+        ttk.Label(der, textvariable=self.var_aviso, foreground="firebrick").pack(side="bottom", anchor="w")
         cobro = ttk.Frame(der)
-        cobro.pack(fill="x")
+        cobro.pack(side="bottom", fill="x")
         self.var_descuento, entrada_desc = ui.crear_campo(cobro, "Descuento (%)", 0, 0, ancho=8, valor="0")
         self.var_pago, entrada_pago = ui.crear_campo(cobro, "Pago recibido", 0, 2, ancho=12)
         entrada_desc.bind("<KeyRelease>", lambda _e: self.refrescar_carrito())
         entrada_pago.bind("<KeyRelease>", lambda _e: self.refrescar_carrito())
-
-        self.var_aviso = tk.StringVar()
-        ttk.Label(der, textvariable=self.var_aviso, foreground="firebrick").pack(anchor="w")
-        self.var_subtotal, self.var_desc_val = tk.StringVar(), tk.StringVar()
-        self.var_impuestos, self.var_total, self.var_cambio = tk.StringVar(), tk.StringVar(), tk.StringVar()
-        totales = ttk.Frame(der)
-        totales.pack(fill="x", pady=4)
-        for i, (texto, var) in enumerate([
-            ("Subtotal:", self.var_subtotal), ("Descuento:", self.var_desc_val),
-            (f"Impuestos ({ventas.IMPUESTO_PORCENTAJE:g}%):", self.var_impuestos),
-            ("TOTAL:", self.var_total), ("Cambio:", self.var_cambio)]):
-            fuente = ("Segoe UI", 11, "bold") if texto == "TOTAL:" else None
-            ttk.Label(totales, text=texto, font=fuente).grid(row=i, column=0, sticky="e")
-            ttk.Label(totales, textvariable=var, font=fuente).grid(row=i, column=1, sticky="w", padx=8)
-        ttk.Button(der, text="COBRAR", command=self.cobrar).pack(fill="x", pady=4)
+        entrada_pago.bind("<Return>", lambda _e: self.cobrar())
+        botones = ttk.Frame(der)
+        botones.pack(side="bottom", fill="x", pady=4)
+        ttk.Button(botones, text="Quitar", command=self.quitar).pack(side="left", padx=2)
+        ttk.Button(botones, text="Cambiar cantidad (usa el campo Cantidad)",
+                   command=self.cambiar_cantidad).pack(side="left", padx=2)
+        ttk.Button(botones, text="Vaciar", command=self.vaciar).pack(side="left", padx=2)
+        marco, self.tabla_car = ui.crear_tabla(der, [
+            ("codigo", "Código", 70), ("nombre", "Nombre", 150), ("cantidad", "Cant.", 50),
+            ("precio", "Precio", 85), ("subtotal", "Subtotal", 95)], alto=5)
+        marco.pack(side="top", fill="both", expand=True)
         self.var_busqueda.trace_add("write", lambda *_: self._llenar_catalogo())
 
     # --- acciones
@@ -311,6 +320,7 @@ class VistaVentas(ttk.Frame):
 
     # --- pantalla
     def refrescar_carrito(self):
+        seleccion = self.tabla_car.selection()
         try:
             totales = ventas.calcular_totales(self.estado, self.carrito, self.var_descuento.get())
         except v.ErrorValidacion as error:
@@ -322,6 +332,8 @@ class VistaVentas(ttk.Frame):
             (l["codigo"], (l["codigo"], l["nombre"], l["cantidad"],
                            ui.formato_moneda(l["precio_unitario"]), ui.formato_moneda(l["subtotal"])))
             for l in totales["lineas"]])
+        if seleccion and seleccion[0] in self.carrito:     # conserva la fila elegida
+            self.tabla_car.selection_set(seleccion[0])
         self.var_subtotal.set(ui.formato_moneda(totales["subtotal"]))
         self.var_desc_val.set(ui.formato_moneda(totales["descuento"]))
         self.var_impuestos.set(ui.formato_moneda(totales["impuestos"]))
@@ -502,7 +514,7 @@ class VistaCaja(ttk.Frame):
         ttk.Button(mov, text="Registrar", command=self.registrar).grid(row=0, column=6, padx=6)
 
         marco, self.tabla_mov = ui.crear_tabla(self, [
-            ("fecha", "Fecha", 150), ("tipo", "Tipo", 100), ("monto", "Monto", 110), ("desc", "Descripción", 300)], alto=7)
+            ("fecha", "Fecha", 150), ("tipo", "Tipo", 100), ("monto", "Monto", 110), ("desc", "Descripción", 300)], alto=4)
         marco.pack(fill="x", pady=4)
         self.var_esperado = tk.StringVar()
         ttk.Label(self, textvariable=self.var_esperado).pack(anchor="w")
